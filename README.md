@@ -10,4 +10,4 @@ Computer side G-code sender is written in python, just a simple code reading fil
 
 Please upload /MSP430/CNC430.ino to your lanuchpad, and start /python/main.py to Enter Shell Program.
 
-There is a mul define in CNC430.ino, change its value according your scaling.
+There is a mul defined in CNC430.ino, change its value according your scaling.
