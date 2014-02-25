@@ -4,7 +4,7 @@
 
 #define STEPS 100
 #define EN 5 //Distance to place pen
-#define mul 50 //Distance to place pen
+#define mul 50
 
 //X max 220
 //y max 250
