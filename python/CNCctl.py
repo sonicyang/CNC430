@@ -22,6 +22,17 @@ def shell():
         if(code == "return"):
             print("returning to normal shell")
             return
+        elif(code == "help"):
+            print("Commands:")
+            print("G00 [X(steps)] [Y(steps)] [Z(steps)] [F(feedrate)]; - linear move")
+            print("G01 [X(steps)] [Y(steps)] [Z(steps)] [F(feedrate)]; - linear move")
+            print("G04 P[seconds]; - delay")
+            print("G90; - absolute mode")
+            print("G91; - relative mode")
+            print("G92 [X(steps)] [Y(steps)]; - change logical position")
+            print("M18; - disable motors")
+            print("M100; - this help message")
+            print("M114; - report position and feedrate")
         else:
             ser.write((code.strip() + "\n").encode("ASCII"))
             ser.read(1)
