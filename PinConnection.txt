@@ -3,3 +3,4 @@ MSP430 Lanuchpad:
   Pin 10, 11, 12, 13 --- Y Axis Stepper
   Pin 14, 15, 18, 19 --- Y Axis Stepper
   Pin 5 --- L293D Enable Pin
+  Pin 20 --- Reset
