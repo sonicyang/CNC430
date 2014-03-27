@@ -1,6 +1,7 @@
 #include <Stepper.h>
 #include <String.h>
 #include <Stream.h>
+#include <math.h>
 
 #define STEPS 100
 #define EN 5 //Distance to place pen
@@ -67,7 +68,7 @@ void processCommand(){
     
     char * ptr = strtok(buffer," "); //Split String
     cmd = atoi(ptr+1);             //Convert command
-    if(mode_abs){
+    if(mode_abs || cmd == '3' || cmd == '2'){
       paralist[0] = x_pos;
       paralist[1] = y_pos;
       paralist[2] = z_pos;
@@ -125,8 +126,8 @@ void processCommand(){
         }
         break;
       case  2:
-        break;
       case  3:
+        Circle(paralist[0],paralist[1],paralist[5],paralist[6],cmd - 2);
         break;
       case  4:  delay(paralist[4]);  break;  // wait a while
       case 90:  mode_abs = 1;  break;  // absolute mode
@@ -311,55 +312,47 @@ void mover(float x,float y){
 
 /*
   Draw X,Y in Circle mode(using Bresenham Algorithm)
-*/
-void Circle(float x,float y, float i, float j){
-  short dirx = x / abs(x);
-  short diry = y / abs(y);
-  x = abs(x);
-  y = abs(y);
-  if(x == y){
-    for(int i = 0; i < x; i++){
-      stepperx.step(dirx * (-1));
-      x_pos += dirx;
-      steppery.step(diry);
-      y_pos += diry;
-    }    
-  }else if(x > y){
-    float acc = 0;
-    boolean flag = false;
-    for(int i = 0; i < x; i++){
-      stepperx.step(dirx * (-1));
-      x_pos += dirx;
-      if(flag){
-        steppery.step(diry);
-        y_pos += diry;
-        flag = false;
-      }
-      acc += (float)y / x;
-      if(acc > 0.5){
-        flag = true;
-        acc--;
-      }
-    }    
+
+void Circle(float x,float y, float i, float j, int dir){
+  float midx = (x_pos+i);
+  float midy = (y_pos+j);
+  float r, thetai, thetaf, dt;
+  
+  
+  if(i == j && j == 0){
+    movea(x,y);
+  }
+  if(x == y && y == 0){
+    r = hypot(i,j);
+    thetai = ((acos((x_pos - midx)/r) + asin((y_pos - midy)/r)) / 2) * (180/PI);
+    dt = 360;
+    
   }else{
-    float acc = 0;
-    boolean flag = false;
-    for(int i = 0; i < y; i++){
-      steppery.step(diry);
-      y_pos += diry;
-      if(flag){
-        stepperx.step(dirx * (-1));
-        x_pos += dirx;
-        flag = false;
-      }
-      acc += (float)x / y;
-      if(acc > 0.5){
-        flag = true;
-        acc--;
-      }
+    r = (hypot(i,j) + hypot(x - midx,y - midy)) / 2;
+    thetai = ((acos((x_pos - midx)/r) + asin((y_pos - midy)/r)) / 2) * (180/PI);
+    thetaf = ((acos((x - midx)/r) + asin((y - midy)/r)) / 2) * (180/PI);
+    dt = thetaf - thetai;
+    
+   if(dir == 0 && dt > 0)
+      dt -= 360;
+   if(dir == 1 && dt < 0)
+      dt += 360;
+    
+    dt = abs(dt);
+  }
+
+  if(dir){
+    for(int i = thetai; i < dt + thetai; i++){
+      movea((r*cos((i/180) * PI) + midx),(r*sin((i/180) * PI) + midy));
+    }
+  }else{
+    for(int i = dt + thetai; i > thetai; i--){
+      movea((r*cos((i/180) * PI) + midx),(r*sin((i/180) * PI) + midy));
     }
   }
+  
 }
+*/
 
 float atof(char * ptr){
   float x = 0;
@@ -391,4 +384,8 @@ float atof(char * ptr){
   if(m)
     x *= (-1);
   return x;
+}
+
+float hypot(float x, float y){
+  return sqrt(x * x + y * y);
 }
