@@ -59,8 +59,11 @@ void loop()
 void processCommand(){
   
     int cmd;
-    float paralist[5] = {0,0,0,-1,0};
+    float paralist[7] = {0,0,0,-1,0,0,0};
     int paraexist = 0;
+    
+    if(buffer[0] == '(')
+      return;
     
     char * ptr = strtok(buffer," "); //Split String
     cmd = atoi(ptr+1);             //Convert command
@@ -84,7 +87,7 @@ void processCommand(){
           break;
         case 'Z':
           paralist[2] = atof(ptr+1);
-          paralist[2] = floor(paralist[2]+0.5);
+          paralist[2] = floor(paralist[2]*10+0.5);
           paraexist &= 4;
           break;
         case 'F':
@@ -93,6 +96,14 @@ void processCommand(){
           break;
         case 'P':
           paralist[4] = atoi(ptr+1);
+          break;
+        case 'I':
+          paralist[5] = atof(ptr+1);
+          paralist[5] = floor(paralist[5]*mul+0.5);
+          break;
+        case 'J':
+          paralist[6] = atof(ptr+1);
+          paralist[6] = floor(paralist[6]*mul+0.5);
           break;
       }
       ptr = strtok(NULL," ");
@@ -113,8 +124,10 @@ void processCommand(){
           headerr(paralist[2]);
         }
         break;
-      // case  2: // clockwise arc
-      // case  3: // counter-clockwise arc
+      case  2:
+        break;
+      case  3:
+        break;
       case  4:  delay(paralist[4]);  break;  // wait a while
       case 90:  mode_abs = 1;  break;  // absolute mode
       case 91:  mode_abs = 0;  break;  // relative mode
@@ -237,23 +250,76 @@ void headerr(int z){
 /*
   Move X,Y to a Sepicified position(a Mesh up of mover routing, also using Bresenham Algorithm)
 */
-void movea(int x,int y){
-  int dx = x_pos - x;
-  int dy = y_pos - y;
+void movea(float x,float y){
+  int dx = x - x_pos;
+  int dy = y - y_pos;
   mover(dx,dy);
 }
 
 /*
   Move X,Y in relative mode(using Bresenham Algorithm)
 */
-void mover(int x,int y){
-  short dirx = x / abs(x) * (-1);
-  short diry = y / abs(y) * (-1);
+void mover(float x,float y){
+  short dirx = x / abs(x);
+  short diry = y / abs(y);
   x = abs(x);
   y = abs(y);
   if(x == y){
     for(int i = 0; i < x; i++){
-      stepperx.step(dirx);
+      stepperx.step(dirx * (-1));
+      x_pos += dirx;
+      steppery.step(diry);
+      y_pos += diry;
+    }
+  }else if(x > y){
+    float acc = 0;
+    boolean flag = false;
+    for(int i = 0; i < x; i++){
+      stepperx.step(dirx * (-1));
+      x_pos += dirx;
+      if(flag){
+        steppery.step(diry);
+        y_pos += diry;
+        flag = false;
+      }
+      acc += y / x;
+      if(acc > 0.5){
+        flag = true;
+        acc--;
+      }
+    }    
+  }else{
+    float acc = 0;
+    boolean flag = false;
+    for(int i = 0; i < y; i++){
+      steppery.step(diry);
+      y_pos += diry;
+      if(flag){
+        stepperx.step(dirx * (-1));
+        x_pos += dirx;
+        flag = false;
+      }
+      acc += x / y;
+      if(acc > 0.5){
+        flag = true;
+        acc--;
+      }
+    }
+  }
+}
+
+
+/*
+  Draw X,Y in Circle mode(using Bresenham Algorithm)
+*/
+void Circle(float x,float y, float i, float j){
+  short dirx = x / abs(x);
+  short diry = y / abs(y);
+  x = abs(x);
+  y = abs(y);
+  if(x == y){
+    for(int i = 0; i < x; i++){
+      stepperx.step(dirx * (-1));
       x_pos += dirx;
       steppery.step(diry);
       y_pos += diry;
@@ -262,7 +328,7 @@ void mover(int x,int y){
     float acc = 0;
     boolean flag = false;
     for(int i = 0; i < x; i++){
-      stepperx.step(dirx);
+      stepperx.step(dirx * (-1));
       x_pos += dirx;
       if(flag){
         steppery.step(diry);
@@ -282,7 +348,7 @@ void mover(int x,int y){
       steppery.step(diry);
       y_pos += diry;
       if(flag){
-        stepperx.step(dirx);
+        stepperx.step(dirx * (-1));
         x_pos += dirx;
         flag = false;
       }
