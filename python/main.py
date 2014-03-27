@@ -64,11 +64,11 @@ while True:
             print("Please open a serial port first")
     elif(comm == "start"):
         portnum = input("Input Serial port number:")
-		try:
-			ser = serial.Serial(portnum, 9600, timeout=None)
-			flag = True
-		except NameError:
-			print(NameError);
+        try:
+            ser = serial.Serial(portnum, 9600, timeout=None)
+            flag = True
+        except NameError:
+            print(NameError);
     elif(comm == "file"):
         if(flag):
             send()

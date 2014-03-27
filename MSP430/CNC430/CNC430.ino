@@ -215,7 +215,7 @@ void feedrate(int rate){
   Reset header position 
 */
 void reset(){
-  headerr((-1)*z_pos);
+  headerr(z_pos);
 }
 
 /*
@@ -231,15 +231,15 @@ void headera(int z){
 */
 void headerr(int z){
   stepperz.step(z * (-1));
-  z_pos += z;
+  z_pos -= z;
 }
 
 /*
   Move X,Y to a Sepicified position(a Mesh up of mover routing, also using Bresenham Algorithm)
 */
 void movea(int x,int y){
-  int dx = x - x_pos;
-  int dy = y - y_pos;
+  int dx = x_pos - x;
+  int dy = y_pos - y;
   mover(dx,dy);
 }
 
