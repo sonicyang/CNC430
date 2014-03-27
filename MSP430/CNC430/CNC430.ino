@@ -125,10 +125,10 @@ void processCommand(){
           headerr(paralist[2]);
         }
         break;
-      case  2:
+      /*case  2:
       case  3:
         Circle(paralist[0],paralist[1],paralist[5],paralist[6],cmd - 2);
-        break;
+        break;*/
       case  4:  delay(paralist[4]);  break;  // wait a while
       case 90:  mode_abs = 1;  break;  // absolute mode
       case 91:  mode_abs = 0;  break;  // relative mode
