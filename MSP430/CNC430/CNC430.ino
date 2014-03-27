@@ -4,7 +4,7 @@
 
 #define STEPS 100
 #define EN 5 //Distance to place pen
-#define mul 50
+#define mul 4
 
 //X max 220
 //y max 250
@@ -60,7 +60,7 @@ void processCommand(){
   
     int cmd;
     float paralist[5] = {0,0,0,-1,0};
-    int paranum = 0;
+    int paraexist = 0;
     
     char * ptr = strtok(buffer," "); //Split String
     cmd = atoi(ptr+1);             //Convert command
@@ -75,14 +75,17 @@ void processCommand(){
         case 'X':
           paralist[0] = atof(ptr+1);
           paralist[0] = floor(paralist[0]*mul+0.5);
+          paraexist &= 1;
           break;
         case 'Y':
           paralist[1] = atof(ptr+1);
           paralist[1] = floor(paralist[1]*mul+0.5);
+          paraexist &= 2;
           break;
         case 'Z':
           paralist[2] = atof(ptr+1);
           paralist[2] = floor(paralist[2]+0.5);
+          paraexist &= 4;
           break;
         case 'F':
           paralist[3] = atof(ptr+1);
@@ -93,7 +96,6 @@ void processCommand(){
           break;
       }
       ptr = strtok(NULL," ");
-      paranum++;
     }
   
   // look for commands that start with 'G'
@@ -114,11 +116,24 @@ void processCommand(){
       // case  2: // clockwise arc
       // case  3: // counter-clockwise arc
       case  4:  delay(paralist[4]);  break;  // wait a while
-      case 90:  mode_abs=1;  break;  // absolute mode
-      case 91:  mode_abs=0;  break;  // relative mode
+      case 90:  mode_abs = 1;  break;  // absolute mode
+      case 91:  mode_abs = 0;  break;  // relative mode
       case 92:  // set logical position
-        reset();
-        movea(0,0);
+        if(paraexist > 0){
+          if((paraexist & 1) == 1){
+            x_pos = paralist[0];
+          }
+          if((paraexist & 2) == 2){
+            y_pos = paralist[1];
+          }
+          if((paraexist & 4) == 4){
+            z_pos = paralist[2];
+          }
+        }else{
+          x_pos = 0;
+          y_pos = 0;
+          z_pos = 0;
+        }
         break;
       default:  break;
     }
@@ -154,7 +169,7 @@ void where() {
 
 /**
  * display helpful information
- */
+*/
 void help() {
   Serial.println(F("Commands:"));
   Serial.println(F("G00 [X(steps)] [Y(steps)] [Z(steps)] [F(feedrate)]; - linear move"));
@@ -162,7 +177,7 @@ void help() {
   Serial.println(F("G04 P[seconds]; - delay"));
   Serial.println(F("G90; - absolute mode"));
   Serial.println(F("G91; - relative mode"));
-  Serial.println(F("G92 [X(steps)] [Y(steps)]; - change logical position"));
+  Serial.println(F("G92 [X(steps)] [Y(steps)] [Z(steps)]; - change logical position"));
   Serial.println(F("M18; - disable motors"));
   Serial.println(F("M100; - this help message"));
   Serial.println(F("M114; - report position and feedrate"));
@@ -207,7 +222,7 @@ void reset(){
   Absolute header movement 
 */
 void headera(int z){
-  int dz = z - z_pos;
+  int dz = z_pos - z;
   headerr(dz);
 }
 
@@ -215,7 +230,7 @@ void headera(int z){
   Relative header movement 
 */
 void headerr(int z){
-  stepperz.step(z);
+  stepperz.step(z * (-1));
   z_pos += z;
 }
 
@@ -232,8 +247,8 @@ void movea(int x,int y){
   Move X,Y in relative mode(using Bresenham Algorithm)
 */
 void mover(int x,int y){
-  short dirx = x / abs(x);
-  short diry = y / abs(y);
+  short dirx = x / abs(x) * (-1);
+  short diry = y / abs(y) * (-1);
   x = abs(x);
   y = abs(y);
   if(x == y){
