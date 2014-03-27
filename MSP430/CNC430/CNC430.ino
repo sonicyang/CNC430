@@ -125,10 +125,10 @@ void processCommand(){
           headerr(paralist[2]);
         }
         break;
-      /*case  2:
+      case  2:
       case  3:
         Circle(paralist[0],paralist[1],paralist[5],paralist[6],cmd - 2);
-        break;*/
+        break;
       case  4:  delay(paralist[4]);  break;  // wait a while
       case 90:  mode_abs = 1;  break;  // absolute mode
       case 91:  mode_abs = 0;  break;  // relative mode
@@ -312,7 +312,7 @@ void mover(float x,float y){
 
 /*
   Draw X,Y in Circle mode(using Bresenham Algorithm)
-
+*/
 void Circle(float x,float y, float i, float j, int dir){
   float midx = (x_pos+i);
   float midy = (y_pos+j);
@@ -324,13 +324,13 @@ void Circle(float x,float y, float i, float j, int dir){
   }
   if(x == y && y == 0){
     r = hypot(i,j);
-    thetai = ((acos((x_pos - midx)/r) + asin((y_pos - midy)/r)) / 2) * (180/PI);
+    thetai = tasin((y_pos - midy)/r) * (180/PI);
     dt = 360;
     
   }else{
     r = (hypot(i,j) + hypot(x - midx,y - midy)) / 2;
-    thetai = ((acos((x_pos - midx)/r) + asin((y_pos - midy)/r)) / 2) * (180/PI);
-    thetaf = ((acos((x - midx)/r) + asin((y - midy)/r)) / 2) * (180/PI);
+    thetai = tasin((y_pos - midy)/r) * (180/PI);
+    thetaf = tasin((y - midy)/r) * (180/PI);
     dt = thetaf - thetai;
     
    if(dir == 0 && dt > 0)
@@ -343,16 +343,16 @@ void Circle(float x,float y, float i, float j, int dir){
 
   if(dir){
     for(int i = thetai; i < dt + thetai; i++){
-      movea((r*cos((i/180) * PI) + midx),(r*sin((i/180) * PI) + midy));
+      movea((r*tcos((i/180) * PI) + midx),(r*tsin((i/180) * PI) + midy));
     }
   }else{
     for(int i = dt + thetai; i > thetai; i--){
-      movea((r*cos((i/180) * PI) + midx),(r*sin((i/180) * PI) + midy));
+      movea((r*tcos((i/180) * PI) + midx),(r*tsin((i/180) * PI) + midy));
     }
   }
   
 }
-*/
+
 
 float atof(char * ptr){
   float x = 0;
@@ -389,3 +389,16 @@ float atof(char * ptr){
 float hypot(float x, float y){
   return sqrt(x * x + y * y);
 }
+
+float tsin(float x){
+  return x - (x*x*x / 6) + (x*x*x*x*x / 120) - (x*x*x*x*x*x*x / 5040) + (x*x*x*x*x*x*x*x*x / 362880);
+}
+
+float tcos(float x){
+  return x*x - (x*x*x*x / 2) + (x*x*x*x*x*x / 24) - (x*x*x*x*x*x*x*x / 720) + (x*x*x*x*x*x*x*x*x*x / 40320);
+}
+
+float tasin(float x){
+  return x + (x*x*x /6) + ((3/40)*x*x*x*x*x) + ((5/112)*x*x*x*x*x*x*x);
+}
+
