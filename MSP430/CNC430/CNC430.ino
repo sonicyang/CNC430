@@ -130,6 +130,7 @@ void processCommand(){
         Circle(paralist[0],paralist[1],paralist[5],paralist[6],cmd - 2);
         break;
       case  4:  delay(paralist[4]);  break;  // wait a while
+      case 28:  reset(); movea(0,0); break;
       case 90:  mode_abs = 1;  break;  // absolute mode
       case 91:  mode_abs = 0;  break;  // relative mode
       case 92:  // set logical position
