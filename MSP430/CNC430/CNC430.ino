@@ -31,7 +31,7 @@ void setup()
   Enable(true);
   feedrate(50);
   
-  help();
+  //help();
   prompt();
 }
 
@@ -380,9 +380,9 @@ void Circle(float x,float y, float i, float j, int dir){
   	ss = (dir == 1) ? s : steps - s; // Work backwards for CW
   	nx = centx + radius * fastsin(angleA + angle * ((float) ss / steps) + (M_PI/2));
   	ny = centy + radius * fastsin(angleA + angle * ((float) ss / steps));
-        Serial.print(nx);
-        Serial.print("\t");
-        Serial.println(ny);
+        //Serial.print(nx);
+        //Serial.print("\t");
+        //Serial.println(ny);
   	movea(nx, ny);
         
   	// Need to calculate rate for each section of curve
