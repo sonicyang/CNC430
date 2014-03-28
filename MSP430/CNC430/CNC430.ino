@@ -31,7 +31,7 @@ void setup()
   Enable(true);
   feedrate(50);
   
-  //help();
+  help();
   prompt();
 }
 
@@ -100,11 +100,11 @@ void processCommand(){
           break;
         case 'I':
           paralist[5] = atof(ptr+1);
-          paralist[5] = floor(paralist[5]*mul+0.5);
+          paralist[5] = floor(paralist[5]);
           break;
         case 'J':
           paralist[6] = atof(ptr+1);
-          paralist[6] = floor(paralist[6]*mul+0.5);
+          paralist[6] = floor(paralist[6]);
           break;
       }
       ptr = strtok(NULL," ");
@@ -315,43 +315,85 @@ void mover(float x,float y){
   Draw X,Y in Circle mode(using Bresenham Algorithm)
 */
 void Circle(float x,float y, float i, float j, int dir){
-  float midx = (x_pos+i);
-  float midy = (y_pos+j);
-  float r, thetai, thetaf, dt;
-  
-  
-  if(i == j && j == 0){
+  if(i == j && j == 0)
     movea(x,y);
-  }
-  if(x == y && y == 0){
-    r = hypot(i,j);
-    thetai = tasin((y_pos - midy)/r) * (180/PI);
-    dt = 360;
-    
-  }else{
-    r = (hypot(i,j) + hypot(x - midx,y - midy)) / 2;
-    thetai = tasin((y_pos - midy)/r) * (180/PI);
-    thetaf = tasin((y - midy)/r) * (180/PI);
-    dt = thetaf - thetai;
-    
-   if(dir == 0 && dt > 0)
-      dt -= 360;
-   if(dir == 1 && dt < 0)
-      dt += 360;
-    
-    dt = abs(dt);
-  }
-
-  if(dir){
-    for(int i = thetai; i < dt + thetai; i++){
-      movea((r*tcos((i/180) * PI) + midx),(r*tsin((i/180) * PI) + midy));
-    }
-  }else{
-    for(int i = dt + thetai; i > thetai; i--){
-      movea((r*tcos((i/180) * PI) + midx),(r*tsin((i/180) * PI) + midy));
-    }
+  
+  
+  float centx, centy;
+  
+  // Centre coordinates are always relative
+  centx = i + x_pos/mul;
+  centy = j + y_pos/mul;
+  float angleA, angleB, angle, radius, length, aX, aY, bX, bY;
+  
+  aX = (x_pos/mul - centx);
+  aY = (y_pos/mul - centy);
+  bX = (x/mul - centx);
+  bY = (y/mul - centy);
+  
+  if (dir == 0) { // Clockwise
+  	angleA = atan2(bY, bX);
+  	angleB = atan2(aY, aX);
+  } else { // Counterclockwise
+  	angleA = atan2(aY, aX);
+  	angleB = atan2(bY, bX);
   }
   
+  // Make sure angleB is always greater than angleA
+  // and if not add 2PI so that it is (this also takes
+  // care of the special case of angleA == angleB,
+  // ie we want a complete circle)
+  if (angleB <= angleA) angleB += 2 * M_PI;
+  angle = angleB - angleA;
+  if(angle == 0)
+    angle = 2 * M_PI;
+  
+  radius = sqrt(aX * aX + aY * aY);
+  length = radius * angle;
+  int steps, s, ss;
+  steps = (int) ceil(length / 0.1);
+  
+  /*
+  Serial.print(x_pos/mul);
+  Serial.print("\t");
+  Serial.println(y_pos/mul);
+  
+  Serial.print(centx);
+  Serial.print("\t");
+  Serial.println(centy);
+  
+  Serial.print(x/mul);
+  Serial.print("\t");
+  Serial.println(y/mul);
+  
+  
+  Serial.print(angleA);
+  Serial.print("\t");
+  Serial.println(angleB);
+  
+  Serial.println(radius);
+  Serial.println(length);
+  
+  */
+  float nx, ny;
+  for (s = 1; s <= steps; s++) {
+  	ss = (dir == 1) ? s : steps - s; // Work backwards for CW
+  	nx = centx + radius * fastsin(angleA + angle * ((float) ss / steps) + (M_PI/2));
+  	ny = centy + radius * fastsin(angleA + angle * ((float) ss / steps));
+        Serial.print(nx);
+        Serial.print("\t");
+        Serial.println(ny);
+  	movea(nx, ny);
+        
+  	// Need to calculate rate for each section of curve
+  	/*if (feedrate > 0)
+  		feedrate_micros = calculate_feedrate_delay(feedrate);
+  	else
+  		feedrate_micros = getMaxSpeed();*/
+  
+  	// Make step
+  	//dda_move(feedrate_micros);
+  }
 }
 
 
@@ -391,6 +433,21 @@ float hypot(float x, float y){
   return sqrt(x * x + y * y);
 }
 
+float fastsin(float x)
+{
+  while(x > M_PI)  
+    x -= 2*M_PI;
+  while(x < -M_PI)  
+    x += 2*M_PI;
+    
+  float B = (4 / M_PI);
+  float c = -4 / (M_PI * M_PI);
+
+  //return 0;
+  return B * x + c * x * ((x < 0) ? -x : x);
+} 
+
+
 float tsin(float x){
   return x - (x*x*x / 6) + (x*x*x*x*x / 120) - (x*x*x*x*x*x*x / 5040) + (x*x*x*x*x*x*x*x*x / 362880);
 }
@@ -401,5 +458,10 @@ float tcos(float x){
 
 float tasin(float x){
   return x + (x*x*x /6) + ((3/40)*x*x*x*x*x) + ((5/112)*x*x*x*x*x*x*x);
+}
+
+float tatan2(float y, float x){
+  float z = y / x;
+  return z - (z*z*z / 3) + (z*z*z*z*z / 5) - (z*z*z*z*z*z*z / 7) + (z*z*z*z*z*z*z*z*z / 9);
 }
 
