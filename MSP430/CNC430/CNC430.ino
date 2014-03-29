@@ -29,7 +29,7 @@ void setup()
   pinMode(EN, OUTPUT);  //EN ctl
   
   Enable(true);
-  feedrate(50);
+  feedrate(20);
   
   //help();
   prompt();
@@ -40,7 +40,7 @@ void loop()
   while(Serial.available() > 0) {  // if something is available
     char c=Serial.read();  // get it
    // Serial.print(c);  // repeat it back so I know you got the message
-    if(sofar<64) buffer[sofar++]=c;  // store it
+    if(sofar<120) buffer[sofar++]=c;  // store it
     if(buffer[sofar-1]=='\n') break;  // entire message received
   }
   if(sofar>0 && buffer[sofar-1]=='\n') {
@@ -154,7 +154,7 @@ void processCommand(){
     }
   }else if(buffer[0] == 'M'){
     switch(cmd) {
-      case 17:  // turns off power to steppers (releases the grip)
+      case 17:  // turns on power to steppers (releases the grip)
         Enable(true);
         break;
       case 18:  // turns off power to steppers (releases the grip)
@@ -165,6 +165,8 @@ void processCommand(){
       default:  break;
     }
   }
+  
+  //Serial.println(cmd);
 }
 
 /**
@@ -346,7 +348,7 @@ void Circle(float x,float y, float i, float j, int dir){
   if (angleB <= angleA) angleB += 2 * M_PI;
   angle = angleB - angleA;
   if(angle == 0)
-    angle = 2 * M_PI;
+    return;
   
   radius = sqrt(aX * aX + aY * aY);
   length = radius * angle;
@@ -383,7 +385,7 @@ void Circle(float x,float y, float i, float j, int dir){
         //Serial.print(nx);
         //Serial.print("\t");
         //Serial.println(ny);
-  	movea(nx, ny);
+  	movea(floor(nx*mul+0.5), floor(ny*mul+0.5));
         
   	// Need to calculate rate for each section of curve
   	/*if (feedrate > 0)
