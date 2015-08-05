@@ -73,3 +73,4 @@ while True:
             print("Please open a serial port first")
     else:
         print("I can't get you ;(")
+        send
